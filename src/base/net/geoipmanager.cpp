@@ -42,10 +42,9 @@
 #include "private/geoipdatabase.h"
 #include "geoipmanager.h"
 
-static const char DATABASE_URL[] = "http://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz";
+static const char DATABASE_URL[] = "https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.mmdb.gz";
 static const char GEOIP_FOLDER[] = "GeoIP";
 static const char GEOIP_FILENAME[] = "GeoLite2-Country.mmdb";
-static const int CACHE_SIZE = 1000;
 static const int UPDATE_INTERVAL = 30; // Days between database updates
 
 using namespace Net;

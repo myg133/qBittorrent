@@ -39,6 +39,7 @@
 #include <QFile>
 #include <QDir>
 #include <QUrl>
+#include <QSize>
 #include "base/types.h"
 
 /*  Miscellaneous functions that can be useful */
@@ -47,26 +48,46 @@ namespace Utils
 {
     namespace Misc
     {
+        // use binary prefix standards from IEC 60027-2
+        // see http://en.wikipedia.org/wiki/Kilobyte
+        enum class SizeUnit
+        {
+            Byte,       // 1024^0,
+            KibiByte,   // 1024^1,
+            MebiByte,   // 1024^2,
+            GibiByte,   // 1024^3,
+            TebiByte,   // 1024^4,
+            PebiByte,   // 1024^5,
+            ExbiByte    // 1024^6,
+            // int64 is used for sizes and thus the next units can not be handled
+            // ZebiByte,   // 1024^7,
+            // YobiByte,   // 1024^8
+        };
+
         QString parseHtmlLinks(const QString &raw_text);
         bool isUrl(const QString &s);
 
-#ifndef DISABLE_GUI
-        void shutdownComputer(ShutdownAction action);
-        // Get screen center
-        QPoint screenCenter(QWidget *win);
-        QSize smallIconSize();
-#endif
+        void shutdownComputer(const ShutdownDialogAction &action);
+
+        QString osName();
+        QString boostVersionString();
+        QString libtorrentVersionString();
+
         int pythonVersion();
         QString pythonExecutable();
         QString pythonVersionComplete();
-        // return best userfriendly storage unit (B, KiB, MiB, GiB, TiB)
-        // use Binary prefix standards from IEC 60027-2
-        // see http://en.wikipedia.org/wiki/Kilobyte
+
+        QString unitString(SizeUnit unit);
+
+        // return best user friendly storage unit (B, KiB, MiB, GiB, TiB)
         // value must be given in bytes
-        QString friendlyUnit(qreal val, bool is_speed = false);
+        bool friendlyUnit(qint64 sizeInBytes, qreal& val, SizeUnit& unit);
+        QString friendlyUnit(qint64 bytesValue, bool isSpeed = false);
+        int friendlyUnitPrecision(SizeUnit unit);
+        qint64 sizeInBytes(qreal size, SizeUnit unit);
+
         bool isPreviewable(const QString& extension);
 
-        QString bcLinkToMagnet(QString bc_link);
         // Take a number of seconds and return an user-friendly
         // time duration like "1d 2h 10m".
         QString userFriendlyDuration(qlonglong seconds);
@@ -77,12 +98,20 @@ namespace Utils
         QList<int> intListfromStringList(const QStringList &l);
         QList<bool> boolListfromStringList(const QStringList &l);
 
+        void msleep(unsigned long msecs);
+
 #ifndef DISABLE_GUI
         void openPath(const QString& absolutePath);
         void openFolderSelect(const QString& absolutePath);
+
+        QPoint screenCenter(QWidget *win);
+        QSize smallIconSize();
+        QSize largeIconSize();
 #endif
 
-        void msleep(unsigned long msecs);
+#ifdef Q_OS_WIN
+        QString windowsSystemPath();
+#endif
     }
 }
 

@@ -59,7 +59,7 @@ public:
     TorrentModel* getSourceModel() const;
 
 public slots:
-    void setSelectionLabel(QString label);
+    void setSelectionCategory(QString category);
     void setSelectedTorrentsLocation();
     void pauseAllTorrents();
     void resumeAllTorrents();
@@ -68,7 +68,9 @@ public slots:
     void startVisibleTorrents();
     void pauseSelectedTorrents();
     void pauseVisibleTorrents();
-    void deleteSelectedTorrents();
+    void softDeleteSelectedTorrents();
+    void permDeleteSelectedTorrents();
+    void deleteSelectedTorrents(bool deleteLocalFiles);
     void deleteVisibleTorrents();
     void increasePrioSelectedTorrents();
     void decreasePrioSelectedTorrents();
@@ -86,11 +88,10 @@ public slots:
     void displayDLHoSMenu(const QPoint&);
     void applyNameFilter(const QString& name);
     void applyStatusFilter(int f);
-    void applyLabelFilter(QString label);
+    void applyCategoryFilter(QString category);
     void applyTrackerFilterAll();
     void applyTrackerFilter(const QStringList &hashes);
     void previewFile(QString filePath);
-    void removeLabelFromRows(QString label);
     void renameSelectedTorrent();
 
 protected:
@@ -100,25 +101,31 @@ protected:
     QList<BitTorrent::TorrentHandle *> getSelectedTorrents() const;
 
 protected slots:
-    void torrentDoubleClicked(const QModelIndex& index);
+    void torrentDoubleClicked();
     void displayListMenu(const QPoint&);
     void currentChanged(const QModelIndex& current, const QModelIndex&);
     void toggleSelectedTorrentsSuperSeeding() const;
     void toggleSelectedTorrentsSequentialDownload() const;
     void toggleSelectedFirstLastPiecePrio() const;
-    void askNewLabelForSelection();
+    void setSelectedAutoTMMEnabled(bool enabled) const;
+    void askNewCategoryForSelection();
     void saveSettings();
 
 signals:
     void currentTorrentChanged(BitTorrent::TorrentHandle *const torrent);
 
 private:
+    void wheelEvent(QWheelEvent *event) override;
+
     TransferListDelegate *listDelegate;
     TorrentModel *listModel;
     TransferListSortModel *nameFilterModel;
     MainWindow *main_window;
     QShortcut *editHotkey;
     QShortcut *deleteHotkey;
+    QShortcut *permDeleteHotkey;
+    QShortcut *doubleClickHotkey;
+    QShortcut *recheckHotkey;
 };
 
 #endif // TRANSFERLISTWIDGET_H

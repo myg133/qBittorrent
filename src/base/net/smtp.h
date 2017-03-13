@@ -39,6 +39,8 @@
 #include <QObject>
 #include <QByteArray>
 #include <QHash>
+#include <QAbstractSocket>
+#include <QMetaType>
 
 QT_BEGIN_NAMESPACE
 class QTextStream;
@@ -64,6 +66,7 @@ namespace Net
 
     private slots:
         void readyRead();
+        void error(QAbstractSocket::SocketError socketError);
 
     private:
         enum States
@@ -102,6 +105,7 @@ namespace Net
         void authPlain();
         void authLogin();
         void logError(const QString &msg);
+        QString getCurrentDateTime() const;
 
         QByteArray m_message;
 #ifndef QT_NO_OPENSSL

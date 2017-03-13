@@ -38,6 +38,11 @@
 #include <QHash>
 
 #include <libtorrent/torrent_handle.hpp>
+#include <libtorrent/version.hpp>
+#if LIBTORRENT_VERSION_NUM >= 10100
+#include <libtorrent/torrent_status.hpp>
+#endif
+
 #include <boost/function.hpp>
 
 #include "base/tristatebool.h"
@@ -48,6 +53,8 @@
 class QBitArray;
 class QStringList;
 template<typename T, typename U> struct QPair;
+
+extern const QString QB_EXT;
 
 namespace libtorrent
 {
@@ -85,7 +92,7 @@ namespace BitTorrent
         bool resumed;
         // for both new and resumed torrents
         QString name;
-        QString label;
+        QString category;
         QString savePath;
         bool disableTempPath;
         bool sequential;
@@ -97,14 +104,15 @@ namespace BitTorrent
         QVector<int> filePriorities;
         // for resumed torrents
         qreal ratioLimit;
+
+        AddTorrentData();
+        AddTorrentData(const AddTorrentParams &params);
     };
 
     struct TrackerInfo
     {
         QString lastMessage;
-        quint32 numPeers;
-
-        TrackerInfo();
+        quint32 numPeers = 0;
     };
 
     class TorrentState
@@ -221,11 +229,16 @@ namespace BitTorrent
         QString rootPath(bool actual = false) const;
         QString contentPath(bool actual = false) const;
 
+        bool isAutoTMMEnabled() const;
+        void setAutoTMMEnabled(bool enabled);
+        QString category() const;
+        bool belongsToCategory(const QString &category) const;
+        bool setCategory(const QString &category);
+
         int filesCount() const;
         int piecesCount() const;
         int piecesHave() const;
         qreal progress() const;
-        QString label() const;
         QDateTime addedTime() const;
         qreal ratioLimit() const;
 
@@ -234,7 +247,6 @@ namespace BitTorrent
         qlonglong fileSize(int index) const;
         QStringList absoluteFilePaths() const;
         QStringList absoluteFilePathsUnwanted() const;
-        QPair<int, int> fileExtremityPieces(int index) const;
         QVector<int> filePriorities() const;
 
         TorrentInfo info() const;
@@ -301,7 +313,6 @@ namespace BitTorrent
         qlonglong nextAnnounce() const;
 
         void setName(const QString &name);
-        void setLabel(const QString &label);
         void setSequentialDownload(bool b);
         void toggleSequentialDownload();
         void setFirstLastPiecePriority(bool b);
@@ -338,13 +349,13 @@ namespace BitTorrent
         void handleAlert(libtorrent::alert *a);
         void handleStateUpdate(const libtorrent::torrent_status &nativeStatus);
         void handleTempPathChanged();
+        void handleCategorySavePathChanged();
         void handleAppendExtensionToggled();
-        void saveResumeData();
+        void saveResumeData(bool updateStatus = false);
 
     private:
         typedef boost::function<void ()> EventTrigger;
 
-        void initialize();
         void updateStatus();
         void updateStatus(const libtorrent::torrent_status &nativeStatus);
         void updateState();
@@ -374,9 +385,9 @@ namespace BitTorrent
 
         void adjustActualSavePath();
         void adjustActualSavePath_impl();
+        void move_impl(QString path);
         void moveStorage(const QString &newPath);
-        void appendExtensionsToIncompleteFiles();
-        void removeExtensionsFromIncompleteFiles();
+        void manageIncompleteFiles();
         bool addTracker(const TrackerEntry &tracker);
         bool addUrlSeed(const QUrl &urlSeed);
         bool removeUrlSeed(const QUrl &urlSeed);
@@ -400,10 +411,12 @@ namespace BitTorrent
         QQueue<EventTrigger> m_moveFinishedTriggers;
         int m_renameCount;
 
+        bool m_useAutoTMM;
+
         // Persistent data
         QString m_name;
         QString m_savePath;
-        QString m_label;
+        QString m_category;
         bool m_hasSeedStatus;
         qreal m_ratioLimit;
         bool m_tempPathDisabled;

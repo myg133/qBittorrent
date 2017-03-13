@@ -165,16 +165,29 @@ a.propButton img {
     margin-bottom: -4px;
 }
 
+.scrollableMenu {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
 /* context menu specific */
 
-#contextmenu { border:1px solid #999; padding:0; background:#eee; list-style-type:none; display:none;}
-#contextmenu .separator { border-top:1px solid #999; }
-#contextmenu li { margin:0; padding:0;}
-#contextmenu li a { display:block; padding:5px 10px 5px 5px; font-size:12px; text-decoration:none; font-family:tahoma,arial,sans-serif; color:#000; }
-#contextmenu li a:hover { background-color:#ddd; }
-#contextmenu li a.disabled { color:#ccc; font-style:italic; }
-#contextmenu li a.disabled:hover { background-color:#eee; }
-#contextmenu li ul {
+.contextMenu { border:1px solid #999; padding:0; background:#eee; list-style-type:none; display:none;}
+.contextMenu .separator { border-top:1px solid #999; }
+.contextMenu li { margin:0; padding:0;}
+.contextMenu li a {
+    display: block;
+    padding: 5px 20px 5px 5px;
+    font-size: 12px;
+    text-decoration: none;
+    font-family: tahoma,arial,sans-serif;
+    color: #000;
+    white-space: nowrap;
+}
+.contextMenu li a:hover { background-color:#ddd; }
+.contextMenu li a.disabled { color:#ccc; font-style:italic; }
+.contextMenu li a.disabled:hover { background-color:#eee; }
+.contextMenu li ul {
     padding: 0;
     border:1px solid #999; padding:0; background:#eee;
     list-style-type:none;
@@ -184,24 +197,24 @@ a.propButton img {
     margin: -29px 0 0 100%;
     width: 164px;
 }
-#contextmenu li ul li a {
+.contextMenu li ul li a {
     position: relative;
 }
-#contextmenu li a.arrow-right, #contextmenu li a:hover.arrow-right {
+.contextMenu li a.arrow-right, .contextMenu li a:hover.arrow-right {
     background-image: url(../images/skin/arrow-right.gif);
     background-repeat: no-repeat;
     background-position: right center;
 }
-#contextmenu li:hover ul,
-#contextmenu li.ieHover ul,
-#contextmenu li li.ieHover ul,
-#contextmenu li li li.ieHover ul,
-#contextmenu li li:hover ul,
-#contextmenu li li li:hover ul { /* lists nested under hovered list items */
+.contextMenu li:hover ul,
+.contextMenu li.ieHover ul,
+.contextMenu li li.ieHover ul,
+.contextMenu li li li.ieHover ul,
+.contextMenu li li:hover ul,
+.contextMenu li li li:hover ul { /* lists nested under hovered list items */
     left: auto;
 }
 
-#contextmenu li img {
+.contextMenu li img {
     width: 16px;
     height: 16px;
     margin-bottom: -4px;
@@ -345,6 +358,12 @@ div.formRow {
     display: block;
 }
 
+.filterTitle {
+    font-weight: bold;
+    text-transform: uppercase;
+    padding-left: 5px;
+}
+
 ul.filterList {
     margin: 0 0 0 16px;
     padding-left: 0;
@@ -383,16 +402,13 @@ td.generalLabel {
     margin-bottom: -3px;
 }
 
-.torrentTable th {
-    padding: 5px 10px;
-}
-
-.torrentTable td {
-    padding: 0px 3px;
-}
-
-.torrentTable thead tr {
-    background-color: #eee;
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 #prop_general {
@@ -406,6 +422,37 @@ td.generalLabel {
 #watched_folders_tab td, #watched_folders_tab th {
     padding: 2px 4px;
     border: 1px solid black;
+}
+
+.select-watched-folder-editable {
+    position:relative;
+    background-color: white;
+    border: solid grey 1px;
+    width: 160px;
+    height: 20px;
+}
+
+.select-watched-folder-editable select {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    border: none;
+    width: 160px;
+    margin: 0;
+}
+
+.select-watched-folder-editable input {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 140px;
+    padding: 1px;
+    border: none;
+}
+
+.select-watched-folder-editable select:focus, .select-editable input:focus {
+    outline: none;
 }
 
 /*
@@ -423,4 +470,12 @@ td.generalLabel {
 
 .combo_priority {
     font-size: 1em;
+}
+
+td.statusBarSeparator {
+    width: 22px;
+    background-image: url('../images/skin/toolbox-divider.gif');
+    background-repeat: no-repeat;
+    background-position: center 1px;
+    background-size: 2px 18px;
 }

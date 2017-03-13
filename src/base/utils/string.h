@@ -31,39 +31,24 @@
 #define UTILS_STRING_H
 
 #include <string>
-#include <QtGlobal>
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 2, 0))
-#include <QCollator>
-#endif
 
-class QString;
 class QByteArray;
+class QString;
 
 namespace Utils
 {
     namespace String
     {
-        QString fromStdString(const std::string &str);
-        std::string toStdString(const QString &str);
         QString fromDouble(double n, int precision);
 
         // Implements constant-time comparison to protect against timing attacks
         // Taken from https://crackstation.net/hashing-security.htm
         bool slowEquals(const QByteArray &a, const QByteArray &b);
 
-        bool naturalSort(const QString &left, const QString &right, bool &result);
+        bool naturalCompareCaseSensitive(const QString &left, const QString &right);
+        bool naturalCompareCaseInsensitive(const QString &left, const QString &right);
 
-        class NaturalCompare
-        {
-        public:
-            NaturalCompare();
-            bool operator()(const QString &l, const QString &r);
-            bool lessThan(const QString &left, const QString &right);
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 2, 0))
-        private:
-            QCollator m_collator;
-#endif
-        };
+        QString wildcardToRegex(const QString &pattern);
     }
 }
 

@@ -42,11 +42,7 @@
 #include <QSplashScreen>
 #ifdef QBT_STATIC_QT
 #include <QtPlugin>
-#ifdef QBT_USES_QT5
 Q_IMPORT_PLUGIN(QICOPlugin)
-#else
-Q_IMPORT_PLUGIN(qico)
-#endif
 #endif // QBT_STATIC_QT
 
 #else
@@ -79,10 +75,15 @@ Q_IMPORT_PLUGIN(qico)
 
 // Signal handlers
 #if defined(Q_OS_UNIX) || defined(STACKTRACE_WIN)
-void sigintHandler(int);
-void sigtermHandler(int);
-void sigsegvHandler(int);
-void sigabrtHandler(int);
+void sigNormalHandler(int signum);
+void sigAbnormalHandler(int signum);
+// sys_signame[] is only defined in BSD
+const char *sysSigName[] = {
+    "", "SIGHUP", "SIGINT", "SIGQUIT", "SIGILL", "SIGTRAP", "SIGABRT", "SIGBUS", "SIGFPE", "SIGKILL",
+    "SIGUSR1", "SIGSEGV", "SIGUSR2", "SIGPIPE", "SIGALRM", "SIGTERM", "SIGSTKFLT", "SIGCHLD", "SIGCONT", "SIGSTOP",
+    "SIGTSTP", "SIGTTIN", "SIGTTOU", "SIGURG", "SIGXCPU", "SIGXFSZ", "SIGVTALRM", "SIGPROF", "SIGWINCH", "SIGIO",
+    "SIGPWR", "SIGUNUSED"
+};
 #endif
 
 struct QBtCommandLineParameters
@@ -129,6 +130,16 @@ int main(int argc, char *argv[])
 {
     // We must save it here because QApplication constructor may change it
     bool isOneArg = (argc == 2);
+
+#ifdef Q_OS_MAC
+    // On macOS 10.12 Sierra, Apple changed the behaviour of CFPreferencesSetValue() https://bugreports.qt.io/browse/QTBUG-56344
+    // Due to this, we have to move from native plist to IniFormat
+    macMigratePlists();
+#endif
+
+#ifndef DISABLE_GUI
+    migrateRSS();
+#endif
 
     // Create Application
     QString appId = QLatin1String("qBittorrent-") + Utils::Misc::getUserIDString();
@@ -178,7 +189,7 @@ int main(int argc, char *argv[])
     }
 
     // Set environment variable
-    if (!qputenv("QBITTORRENT", QByteArray(VERSION)))
+    if (!qputenv("QBITTORRENT", QBT_VERSION))
         std::cerr << "Couldn't set environment variable...\n";
 
 #ifndef DISABLE_GUI
@@ -210,6 +221,32 @@ int main(int argc, char *argv[])
         return EXIT_SUCCESS;
     }
 
+#if defined(Q_OS_WIN)
+    // This affects only Windows apparently and Qt5.
+    // When QNetworkAccessManager is instantiated it regularly starts polling
+    // the network interfaces to see what's available and their status.
+    // This polling creates jitter and high ping with wifi interfaces.
+    // So here we disable it for lack of better measure.
+    // It will also spew this message in the console: QObject::startTimer: Timers cannot have negative intervals
+    // For more info see:
+    // 1. https://github.com/qbittorrent/qBittorrent/issues/4209
+    // 2. https://bugreports.qt.io/browse/QTBUG-40332
+    // 3. https://bugreports.qt.io/browse/QTBUG-46015
+
+    qputenv("QT_BEARER_POLL_TIMEOUT", QByteArray::number(-1));
+#endif
+
+#if defined(Q_OS_MAC)
+{
+    // Since Apple made difficult for users to set PATH, we set here for convenience.
+    // Users are supposed to install Homebrew Python for search function.
+    // For more info see issue #5571.
+    QByteArray path = "/usr/local/bin:";
+    path += qgetenv("PATH");
+    qputenv("PATH", path.constData());
+}
+#endif
+
 #ifndef DISABLE_GUI
     if (!upgrade()) return EXIT_FAILURE;
 #else
@@ -218,7 +255,6 @@ int main(int argc, char *argv[])
                  && isatty(fileno(stdout)))) return EXIT_FAILURE;
 #endif
 
-    srand(time(0));
 #ifdef DISABLE_GUI
     if (params.shouldDaemonize) {
         app.reset(); // Destroy current application
@@ -240,10 +276,10 @@ int main(int argc, char *argv[])
 #endif
 
 #if defined(Q_OS_UNIX) || defined(STACKTRACE_WIN)
-    signal(SIGABRT, sigabrtHandler);
-    signal(SIGTERM, sigtermHandler);
-    signal(SIGINT, sigintHandler);
-    signal(SIGSEGV, sigsegvHandler);
+    signal(SIGINT, sigNormalHandler);
+    signal(SIGTERM, sigNormalHandler);
+    signal(SIGABRT, sigAbnormalHandler);
+    signal(SIGSEGV, sigAbnormalHandler);
 #endif
 
     return app->exec(params.torrents);
@@ -303,78 +339,61 @@ QBtCommandLineParameters parseCommandLine()
 }
 
 #if defined(Q_OS_UNIX) || defined(STACKTRACE_WIN)
-void sigintHandler(int)
+void sigNormalHandler(int signum)
 {
-    signal(SIGINT, 0);
-    qDebug("Catching SIGINT, exiting cleanly");
-    qApp->exit();
-}
-
-void sigtermHandler(int)
-{
-    signal(SIGTERM, 0);
-    qDebug("Catching SIGTERM, exiting cleanly");
-    qApp->exit();
-}
-
-void sigsegvHandler(int)
-{
-    signal(SIGABRT, 0);
-    signal(SIGSEGV, 0);
 #if !defined Q_OS_WIN && !defined Q_OS_HAIKU
-    std::cerr << "\n\n*************************************************************\n";
-    std::cerr << "Catching SIGSEGV, please report a bug at http://bug.qbittorrent.org\nand provide the following backtrace:\n";
-    std::cerr << "qBittorrent version: " << VERSION << std::endl;
-    print_stacktrace();
-#else
+    const char str1[] = "Catching signal: ";
+    const char *sigName = sysSigName[signum];
+    const char str2[] = "\nExiting cleanly\n";
+    write(STDERR_FILENO, str1, strlen(str1));
+    write(STDERR_FILENO, sigName, strlen(sigName));
+    write(STDERR_FILENO, str2, strlen(str2));
+#endif // !defined Q_OS_WIN && !defined Q_OS_HAIKU
+    signal(signum, SIG_DFL);
+    qApp->exit();  // unsafe, but exit anyway
+}
+
+void sigAbnormalHandler(int signum)
+{
+#if !defined Q_OS_WIN && !defined Q_OS_HAIKU
+    const char str1[] = "\n\n*************************************************************\nCatching signal: ";
+    const char *sigName = sysSigName[signum];
+    const char str2[] = "\nPlease file a bug report at http://bug.qbittorrent.org and provide the following information:\n\n"
+    "qBittorrent version: " QBT_VERSION "\n";
+    write(STDERR_FILENO, str1, strlen(str1));
+    write(STDERR_FILENO, sigName, strlen(sigName));
+    write(STDERR_FILENO, str2, strlen(str2));
+    print_stacktrace();  // unsafe
+#endif // !defined Q_OS_WIN && !defined Q_OS_HAIKU
 #ifdef STACKTRACE_WIN
-    StraceDlg dlg;
+    StraceDlg dlg;  // unsafe
     dlg.setStacktraceString(straceWin::getBacktrace());
     dlg.exec();
-#endif
-#endif
-    raise(SIGSEGV);
+#endif // STACKTRACE_WIN
+    signal(signum, SIG_DFL);
+    raise(signum);
 }
-
-void sigabrtHandler(int)
-{
-    signal(SIGABRT, 0);
-    signal(SIGSEGV, 0);
-#if !defined Q_OS_WIN && !defined Q_OS_HAIKU
-    std::cerr << "\n\n*************************************************************\n";
-    std::cerr << "Catching SIGABRT, please report a bug at http://bug.qbittorrent.org\nand provide the following backtrace:\n";
-    std::cerr << "qBittorrent version: " << VERSION << std::endl;
-    print_stacktrace();
-#else
-#ifdef STACKTRACE_WIN
-    StraceDlg dlg;
-    dlg.setStacktraceString(straceWin::getBacktrace());
-    dlg.exec();
-#endif
-#endif
-    raise(SIGABRT);
-}
-#endif
+#endif // defined(Q_OS_UNIX) || defined(STACKTRACE_WIN)
 
 #ifndef DISABLE_GUI
 void showSplashScreen()
 {
     QPixmap splash_img(":/icons/skin/splash.png");
     QPainter painter(&splash_img);
-    QString version = VERSION;
+    QString version = QBT_VERSION;
     painter.setPen(QPen(Qt::white));
     painter.setFont(QFont("Arial", 22, QFont::Black));
     painter.drawText(224 - painter.fontMetrics().width(version), 270, version);
-    QSplashScreen *splash = new QSplashScreen(splash_img, Qt::WindowStaysOnTopHint);
-    QTimer::singleShot(1500, splash, SLOT(deleteLater()));
+    QSplashScreen *splash = new QSplashScreen(splash_img);
     splash->show();
+    QTimer::singleShot(1500, splash, SLOT(deleteLater()));
     qApp->processEvents();
 }
 #endif
 
 void displayVersion()
 {
-    std::cout << qPrintable(qApp->applicationName()) << " " << VERSION << std::endl;
+    std::cout << qPrintable(qApp->applicationName()) << " " << QBT_VERSION << std::endl;
 }
 
 QString makeUsage(const QString &prg_name)

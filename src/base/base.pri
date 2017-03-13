@@ -4,7 +4,10 @@ HEADERS += \
     $$PWD/filesystemwatcher.h \
     $$PWD/qinisettings.h \
     $$PWD/logger.h \
+    $$PWD/settingsstorage.h \
+    $$PWD/settingvalue.h \
     $$PWD/preferences.h \
+    $$PWD/indexrange.h \
     $$PWD/iconprovider.h \
     $$PWD/http/irequesthandler.h \
     $$PWD/http/connection.h \
@@ -18,6 +21,7 @@ HEADERS += \
     $$PWD/net/downloadhandler.h \
     $$PWD/net/geoipmanager.h \
     $$PWD/net/portforwarder.h \
+    $$PWD/net/proxyconfigurationmanager.h \
     $$PWD/net/reverseresolution.h \
     $$PWD/net/smtp.h \
     $$PWD/net/private/geoipdatabase.h \
@@ -36,11 +40,23 @@ HEADERS += \
     $$PWD/bittorrent/private/bandwidthscheduler.h \
     $$PWD/bittorrent/private/filterparserthread.h \
     $$PWD/bittorrent/private/statistics.h \
+    $$PWD/bittorrent/private/resumedatasavingmanager.h \
+    $$PWD/rss/rssmanager.h \
+    $$PWD/rss/rssfeed.h \
+    $$PWD/rss/rssfolder.h \
+    $$PWD/rss/rssfile.h \
+    $$PWD/rss/rssarticle.h \
+    $$PWD/rss/rssdownloadrule.h \
+    $$PWD/rss/rssdownloadrulelist.h \
+    $$PWD/rss/private/rssparser.h \
     $$PWD/utils/fs.h \
     $$PWD/utils/gzip.h \
     $$PWD/utils/misc.h \
+    $$PWD/utils/net.h \
+    $$PWD/utils/random.h \
     $$PWD/utils/string.h \
     $$PWD/unicodestrings.h \
+    $$PWD/torrentfileguard.h \
     $$PWD/torrentfilter.h \
     $$PWD/scanfoldersmodel.h \
     $$PWD/searchengine.h
@@ -49,6 +65,7 @@ SOURCES += \
     $$PWD/tristatebool.cpp \
     $$PWD/filesystemwatcher.cpp \
     $$PWD/logger.cpp \
+    $$PWD/settingsstorage.cpp \
     $$PWD/preferences.cpp \
     $$PWD/iconprovider.cpp \
     $$PWD/http/connection.cpp \
@@ -61,6 +78,7 @@ SOURCES += \
     $$PWD/net/downloadhandler.cpp \
     $$PWD/net/geoipmanager.cpp \
     $$PWD/net/portforwarder.cpp \
+    $$PWD/net/proxyconfigurationmanager.cpp \
     $$PWD/net/reverseresolution.cpp \
     $$PWD/net/smtp.cpp \
     $$PWD/net/private/geoipdatabase.cpp \
@@ -79,10 +97,22 @@ SOURCES += \
     $$PWD/bittorrent/private/bandwidthscheduler.cpp \
     $$PWD/bittorrent/private/filterparserthread.cpp \
     $$PWD/bittorrent/private/statistics.cpp \
+    $$PWD/bittorrent/private/resumedatasavingmanager.cpp \
+    $$PWD/rss/rssmanager.cpp \
+    $$PWD/rss/rssfeed.cpp \
+    $$PWD/rss/rssfolder.cpp \
+    $$PWD/rss/rssarticle.cpp \
+    $$PWD/rss/rssdownloadrule.cpp \
+    $$PWD/rss/rssdownloadrulelist.cpp \
+    $$PWD/rss/rssfile.cpp \
+    $$PWD/rss/private/rssparser.cpp \
     $$PWD/utils/fs.cpp \
     $$PWD/utils/gzip.cpp \
     $$PWD/utils/misc.cpp \
+    $$PWD/utils/net.cpp \
+    $$PWD/utils/random.cpp \
     $$PWD/utils/string.cpp \
+    $$PWD/torrentfileguard.cpp \
     $$PWD/torrentfilter.cpp \
     $$PWD/scanfoldersmodel.cpp \
     $$PWD/searchengine.cpp

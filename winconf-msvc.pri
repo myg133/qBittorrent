@@ -11,12 +11,9 @@ strace_win {
   LIBS += dbghelp.lib
 }
 
-QMAKE_LFLAGS += "/OPT:REF /OPT:ICF"
+QMAKE_LFLAGS += "/OPT:REF /OPT:ICF /MANIFEST:EMBED /MANIFESTINPUT:$$quote($${PWD}/src/qbittorrent.exe.manifest)"
 
 RC_FILE = qbittorrent.rc
-
-# Enable Wide characters
-DEFINES += TORRENT_USE_WPATH
 
 # Adapt the lib names/versions accordingly
 CONFIG(debug, debug|release) {

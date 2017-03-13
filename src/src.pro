@@ -5,7 +5,8 @@ CONFIG += qt thread silent
 # C++11 support
 CONFIG += c++11
 DEFINES += BOOST_NO_CXX11_RVALUE_REFERENCES
-greaterThan(QT_MAJOR_VERSION, 4): DEFINES += QBT_USES_QT5
+
+lessThan(QT_MAJOR_VERSION, 5): DEFINES += QStringLiteral=QLatin1String
 
 # Windows specific configuration
 win32: include(../winconf.pri)
@@ -21,11 +22,11 @@ os2: include(../os2conf.pri)
 
 nogui {
     QT -= gui
-    DEFINES += DISABLE_GUI DISABLE_COUNTRIES_RESOLUTION
+    DEFINES += DISABLE_GUI
     TARGET = qbittorrent-nox
 } else {
     QT += xml
-    greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent
+    greaterThan(QT_MAJOR_VERSION, 4): QT += concurrent widgets
     CONFIG(static) {
         DEFINES += QBT_STATIC_QT
         QTPLUGIN += qico
@@ -33,12 +34,13 @@ nogui {
     TARGET = qbittorrent
 }
 nowebui: DEFINES += DISABLE_WEBUI
-strace_win: DEFINES += STACKTRACE_WIN
+strace_win {
+    DEFINES += STACKTRACE_WIN
+    DEFINES += STACKTRACE_WIN_PROJECT_PATH=$$PWD
+    DEFINES += STACKTRACE_WIN_MAKEFILE_PATH=$$OUT_PWD
+}
 QT += network xml
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-# Vars
-LANG_PATH = lang
 
 CONFIG(debug, debug|release): message(Project is built in DEBUG mode.)
 CONFIG(release, debug|release): message(Project is built in RELEASE mode.)
@@ -73,51 +75,6 @@ RESOURCES += \
     searchengine.qrc
 
 # Translations
-TRANSLATIONS = \
-    $$LANG_PATH/qbittorrent_fr.ts \
-    $$LANG_PATH/qbittorrent_zh.ts \
-    $$LANG_PATH/qbittorrent_zh_TW.ts \
-    $$LANG_PATH/qbittorrent_zh_HK.ts \
-    $$LANG_PATH/qbittorrent_en.ts \
-    $$LANG_PATH/qbittorrent_en_AU.ts \
-    $$LANG_PATH/qbittorrent_en_GB.ts \
-    $$LANG_PATH/qbittorrent_ca.ts \
-    $$LANG_PATH/qbittorrent_es.ts \
-    $$LANG_PATH/qbittorrent_eo.ts \
-    $$LANG_PATH/qbittorrent_pl.ts \
-    $$LANG_PATH/qbittorrent_ko.ts \
-    $$LANG_PATH/qbittorrent_de.ts \
-    $$LANG_PATH/qbittorrent_nl.ts \
-    $$LANG_PATH/qbittorrent_tr.ts \
-    $$LANG_PATH/qbittorrent_sv.ts \
-    $$LANG_PATH/qbittorrent_el.ts \
-    $$LANG_PATH/qbittorrent_ru.ts \
-    $$LANG_PATH/qbittorrent_uk.ts \
-    $$LANG_PATH/qbittorrent_bg.ts \
-    $$LANG_PATH/qbittorrent_id.ts \
-    $$LANG_PATH/qbittorrent_it.ts \
-    $$LANG_PATH/qbittorrent_sk.ts \
-    $$LANG_PATH/qbittorrent_sl.ts \
-    $$LANG_PATH/qbittorrent_ro.ts \
-    $$LANG_PATH/qbittorrent_pt.ts \
-    $$LANG_PATH/qbittorrent_nb.ts \
-    $$LANG_PATH/qbittorrent_fi.ts \
-    $$LANG_PATH/qbittorrent_da.ts \
-    $$LANG_PATH/qbittorrent_ja.ts \
-    $$LANG_PATH/qbittorrent_hu.ts \
-    $$LANG_PATH/qbittorrent_pt_BR.ts \
-    $$LANG_PATH/qbittorrent_cs.ts \
-    $$LANG_PATH/qbittorrent_sr.ts \
-    $$LANG_PATH/qbittorrent_ar.ts \
-    $$LANG_PATH/qbittorrent_hr.ts \
-    $$LANG_PATH/qbittorrent_gl.ts \
-    $$LANG_PATH/qbittorrent_hy.ts \
-    $$LANG_PATH/qbittorrent_lt.ts \
-    $$LANG_PATH/qbittorrent_ka.ts \
-    $$LANG_PATH/qbittorrent_be.ts \
-    $$LANG_PATH/qbittorrent_eu.ts \
-    $$LANG_PATH/qbittorrent_he.ts \
-    $$LANG_PATH/qbittorrent_vi.ts \
-    $$LANG_PATH/qbittorrent_hi_IN.ts
+TRANSLATIONS += $$files(lang/qbittorrent_*.ts)
 
 DESTDIR = .

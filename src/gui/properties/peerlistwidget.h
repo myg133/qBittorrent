@@ -77,6 +77,7 @@ public:
 private slots:
     void loadSettings();
     void saveSettings() const;
+    void displayToggleColumnsMenu(const QPoint&);
     void showPeerListMenu(const QPoint&);
     void banSelectedPeers();
     void copySelectedPeers();
@@ -84,6 +85,8 @@ private slots:
     void handleResolved(const QString &ip, const QString &hostname);
 
 private:
+    void wheelEvent(QWheelEvent *event) override;
+
     QStandardItemModel *m_listModel;
     PeerListDelegate *m_listDelegate;
     PeerListSortModel *m_proxyModel;
@@ -92,7 +95,7 @@ private:
     QSet<QString> m_missingFlags;
     QPointer<Net::ReverseResolution> m_resolver;
     PropertiesWidget *m_properties;
-    bool m_displayFlags;
+    bool m_resolveCountries;
     QShortcut *m_copyHotkey;
 };
 

@@ -44,14 +44,15 @@ public:
     TransferListSortModel(QObject *parent = 0);
 
     void setStatusFilter(TorrentFilter::Type filter);
-    void setLabelFilter(const QString &label);
-    void disableLabelFilter();
+    void setCategoryFilter(const QString &category);
+    void disableCategoryFilter();
     void setTrackerFilter(const QStringList &hashes);
     void disableTrackerFilter();
 
 private:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const;
     bool lowerPositionThan(const QModelIndex &left, const QModelIndex &right) const;
+    bool dateLessThan(const int dateColumn, const QModelIndex &left, const QModelIndex &right, bool sortInvalidInBottom) const;
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
     bool matchFilter(int sourceRow, const QModelIndex &sourceParent) const;
 

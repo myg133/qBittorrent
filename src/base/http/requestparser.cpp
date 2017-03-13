@@ -31,11 +31,8 @@
 
 #include <QStringList>
 #include <QUrl>
-#ifdef QBT_USES_QT5
 #include <QUrlQuery>
-#endif
 #include <QDir>
-#include <QTemporaryFile>
 #include <QDebug>
 #include "requestparser.h"
 
@@ -81,6 +78,11 @@ RequestParser::ErrorCode RequestParser::parseHttpRequest(const QByteArray& data,
     // Parse HTTP request message
     if (m_request.headers.contains("content-length")) {
         int content_length = m_request.headers["content-length"].toInt();
+        if (content_length < 0) {
+            qWarning() << Q_FUNC_INFO << "bad request: content-length negative";
+            return BadRequest;
+        }
+
         if (content_length > static_cast<int>(m_maxContentLength)) {
             qWarning() << Q_FUNC_INFO << "bad request: message too long";
             return BadRequest;
@@ -92,7 +94,7 @@ RequestParser::ErrorCode RequestParser::parseHttpRequest(const QByteArray& data,
             return IncompleteRequest;
         }
 
-        if (!parseContent(content)) {
+        if ((content_length > 0) && !parseContent(content)) {
             qWarning() << Q_FUNC_INFO << "message parsing error";
             return BadRequest;
         }
@@ -117,11 +119,7 @@ bool RequestParser::parseStartingLine(const QString &line)
         m_request.path = url.path(); // Path
 
         // Parse GET parameters
-#ifndef QBT_USES_QT5
-        QListIterator<QPair<QString, QString> > i(url.queryItems());
-#else
         QListIterator<QPair<QString, QString> > i(QUrlQuery(url).queryItems());
-#endif
         while (i.hasNext()) {
             QPair<QString, QString> pair = i.next();
             m_request.gets[pair.first] = pair.second;
@@ -216,13 +214,8 @@ bool RequestParser::parseContent(const QByteArray& data)
     // Parse url-encoded POST data
     if (m_request.headers["content-type"].startsWith("application/x-www-form-urlencoded")) {
         QUrl url;
-#ifndef QBT_USES_QT5
-        url.setEncodedQuery(data);
-        QListIterator<QPair<QString, QString> > i(url.queryItems());
-#else
         url.setQuery(data);
         QListIterator<QPair<QString, QString> > i(QUrlQuery(url).queryItems(QUrl::FullyDecoded));
-#endif
         while (i.hasNext()) {
             QPair<QString, QString> pair = i.next();
             m_request.posts[pair.first.toLower()] = pair.second;

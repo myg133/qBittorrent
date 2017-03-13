@@ -31,16 +31,13 @@
 #ifndef SCANFOLDERSMODEL_H
 #define SCANFOLDERSMODEL_H
 
-#include <QAbstractTableModel>
+#include <QAbstractListModel>
 #include <QList>
 
-QT_BEGIN_NAMESPACE
 class QStringList;
-QT_END_NAMESPACE
-
 class FileSystemWatcher;
 
-class ScanFoldersModel : public QAbstractTableModel
+class ScanFoldersModel: public QAbstractListModel
 {
     Q_OBJECT
     Q_DISABLE_COPY(ScanFoldersModel)
@@ -55,9 +52,25 @@ public:
         AlreadyInList
     };
 
+    enum Column
+    {
+        WATCH,
+        DOWNLOAD,
+        NB_COLUMNS
+    };
+
+    enum PathType
+    {
+        DOWNLOAD_IN_WATCH_FOLDER,
+        DEFAULT_LOCATION,
+        CUSTOM_LOCATION
+    };
+
     static bool initInstance(QObject *parent = 0);
     static void freeInstance();
-    static ScanFoldersModel *instance();
+    static ScanFoldersModel* instance();
+
+    static QString pathTypeDisplayName(const PathType type);
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
@@ -67,17 +80,20 @@ public:
 
     // TODO: removePaths(); singular version becomes private helper functions;
     // also: remove functions should take modelindexes
-    PathStatus addPath(const QString &path, bool downloadAtPath, const QString &downloadPath);
-    void removePath(int row);
-    bool removePath(const QString &path);
-    PathStatus setDownloadAtPath(int row, bool downloadAtPath);
+    PathStatus addPath(const QString &watchPath, const PathType &downloadType, const QString &downloadPath, bool addToFSWatcher = true);
+    PathStatus updatePath(const QString &watchPath, const PathType &downloadType, const QString &downloadPath);
+    // PRECONDITION: The paths must have been added with addPath() first.
+    void addToFSWatcher(const QStringList &watchPaths);
+    void removePath(int row, bool removeFromFSWatcher = true);
+    bool removePath(const QString &path, bool removeFromFSWatcher = true);
+    void removeFromFSWatcher(const QStringList &watchPaths);
 
-    bool downloadInTorrentFolder(const QString &filePath) const;
-    QString downloadPathTorrentFolder(const QString &filePath) const;
     void makePersistent();
 
-private slots:
+public slots:
     void configure();
+
+private slots:
     void addTorrentsToSession(const QStringList &pathList);
 
 private:
@@ -85,9 +101,14 @@ private:
     ~ScanFoldersModel();
 
     virtual bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
-    static ScanFoldersModel *m_instance;
-    class PathData;
+    bool downloadInWatchFolder(const QString &filePath) const;
+    bool downloadInDefaultFolder(const QString &filePath) const;
+    QString downloadPathTorrentFolder(const QString &filePath) const;
     int findPathData(const QString &path) const;
+
+private:
+    static ScanFoldersModel *m_instance;
+    struct PathData;
 
     QList<PathData*> m_pathList;
     FileSystemWatcher *m_fsWatcher;

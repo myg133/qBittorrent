@@ -30,7 +30,11 @@
 #define BITTORRENT_TORRENTINFO_H
 
 #include <QtGlobal>
+
 #include <libtorrent/torrent_info.hpp>
+#include <libtorrent/version.hpp>
+
+#include "base/indexrange.h"
 
 class QString;
 class QUrl;
@@ -38,6 +42,7 @@ class QDateTime;
 class QStringList;
 class QByteArray;
 template<typename T> class QList;
+template<typename T> class QVector;
 
 namespace BitTorrent
 {
@@ -47,7 +52,15 @@ namespace BitTorrent
     class TorrentInfo
     {
     public:
-        explicit TorrentInfo(boost::intrusive_ptr<const libtorrent::torrent_info> nativeInfo = boost::intrusive_ptr<const libtorrent::torrent_info>());
+#if LIBTORRENT_VERSION_NUM < 10100
+        typedef boost::intrusive_ptr<const libtorrent::torrent_info> NativeConstPtr;
+        typedef boost::intrusive_ptr<libtorrent::torrent_info> NativePtr;
+#else
+        typedef boost::shared_ptr<const libtorrent::torrent_info> NativeConstPtr;
+        typedef boost::shared_ptr<libtorrent::torrent_info> NativePtr;
+#endif
+
+        explicit TorrentInfo(NativeConstPtr nativeInfo = NativeConstPtr());
         TorrentInfo(const TorrentInfo &other);
 
         static TorrentInfo loadFromFile(const QString &path, QString &error);
@@ -65,6 +78,7 @@ namespace BitTorrent
         qlonglong totalSize() const;
         int filesCount() const;
         int pieceLength() const;
+        int pieceLength(int index) const;
         int piecesCount() const;
         QString filePath(int index) const;
         QStringList filePaths() const;
@@ -76,12 +90,22 @@ namespace BitTorrent
         QList<QUrl> urlSeeds() const;
         QByteArray metadata() const;
         QStringList filesForPiece(int pieceIndex) const;
+        QVector<int> fileIndicesForPiece(int pieceIndex) const;
+
+        using PieceRange = IndexRange<int>;
+        // returns pair of the first and the last pieces into which
+        // the given file extends (maybe partially).
+        PieceRange filePieces(const QString &file) const;
+        PieceRange filePieces(int fileIndex) const;
 
         void renameFile(uint index, const QString &newPath);
-        boost::intrusive_ptr<libtorrent::torrent_info> nativeInfo() const;
+
+        NativePtr nativeInfo() const;
 
     private:
-        boost::intrusive_ptr<libtorrent::torrent_info> m_nativeInfo;
+        // returns file index or -1 if fileName is not found
+        int fileIndex(const QString &fileName) const;
+        NativePtr m_nativeInfo;
     };
 }
 

@@ -1,4 +1,4 @@
-QBT_TR(Torrents)QBT_TR
+<span class="filterTitle">QBT_TR(Status)QBT_TR</span>
 <ul class="filterList">
     <li id="all_filter"><a href="#" onclick="setFilter('all');return false;"><img src="images/skin/filterall.png"/>QBT_TR(All (0))QBT_TR</a></li>
     <li id="downloading_filter"><a href="#" onclick="setFilter('downloading');return false;"><img src="images/skin/downloading.png"/>QBT_TR(Downloading (0))QBT_TR</a></li>
@@ -11,6 +11,40 @@ QBT_TR(Torrents)QBT_TR
     <li id="errored_filter"><a href="#" onclick="setFilter('errored');return false;"><img src="images/skin/error.png"/>QBT_TR(Errored (0))QBT_TR</a></li>
 </ul>
 <br/>
-QBT_TR(Labels)QBT_TR
-<ul id="filterLabelList" class="filterList">
+<span class="filterTitle">QBT_TR(Categories)QBT_TR</span>
+<ul id="filterCategoryList" class="filterList">
 </ul>
+
+<script type="text/javascript">
+    var categoriesFilterContextMenu = new CategoriesFilterContextMenu({
+        targets : '.categoriesFilterContextMenuTarget',
+        menu : 'categoriesFilterMenu',
+        actions : {
+            CreateCategory : function (element, ref) {
+                createCategoryFN();
+            },
+            DeleteCategory : function (element, ref) {
+                removeCategoryFN(element.id);
+            },
+            DeleteUnusedCategories : function (element, ref) {
+                deleteUnusedCategoriesFN();
+            },
+            StartTorrentsByCategory : function (element, ref) {
+                startTorrentsByCategoryFN(element.id);
+            },
+            PauseTorrentsByCategory : function (element, ref) {
+                pauseTorrentsByCategoryFN(element.id);
+            },
+            DeleteTorrentsByCategory : function (element, ref) {
+                deleteTorrentsByCategoryFN(element.id);
+            }
+        },
+        offsets : {
+            x : -15,
+            y : 2
+        },
+        onShow: function () {
+            this.options.element.firstChild.click();
+        }
+    });
+</script>

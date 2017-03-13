@@ -1,17 +1,26 @@
-<table class="torrentTable" cellpadding="0" cellspacing="0" style="-webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;">
-    <thead>
-        <tr id="torrentsTableHeader">
-        </tr>
-    </thead>
-    <tbody id="torrentsTable"></tbody>
-</table>
+<div id="torrentsTableFixedHeaderDiv" class="dynamicTableFixedHeaderDiv">
+    <table class="dynamicTable unselectable" style="position:relative;">
+        <thead>
+            <tr class="dynamicTableHeader"></tr>
+        </thead>
+    </table>
+</div>
+
+<div id="torrentsTableDiv" class="dynamicTableDiv">
+    <table class="dynamicTable unselectable">
+        <thead>
+            <tr class="dynamicTableHeader"></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 <script type="text/javascript">
 
     //create a context menu
-    var torrents_table_context_menu = new ContextMenu({
-        targets : '.menu-target',
-        menu : 'contextmenu',
+    var torrentsTableContextMenu = new TorrentsTableContextMenu({
+        targets : '.torrentsTableContextMenuTarget',
+        menu : 'torrentsTableMenu',
         actions : {
             Delete : function (element, ref) {
                 deleteFN();
@@ -62,5 +71,5 @@
         }
     });
 
-    torrentsTable.setup('torrentsTable', 'torrentsTableHeader', torrents_table_context_menu);
+    torrentsTable.setup('torrentsTableDiv', 'torrentsTableFixedHeaderDiv', torrentsTableContextMenu);
 </script>
